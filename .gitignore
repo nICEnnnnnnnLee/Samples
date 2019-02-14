@@ -5,6 +5,6 @@
 *.zip
 *.log
 *.config
-/bin
-/target
-/src/nicelee/http/sample
+*/bin
+*/target
+*/sample
