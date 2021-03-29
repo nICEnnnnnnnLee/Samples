@@ -1,4 +1,4 @@
-package nicelee.tcp;
+package nicelee.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -8,6 +8,9 @@ import java.nio.channels.SocketChannel;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import nicelee.nat.NATSession;
+import nicelee.nat.NATSessionManager;
+
 public class TwinsChannel {
 	
 	final static Pattern patternURL = Pattern.compile("^/([^:]+):(.*)$");
@@ -15,6 +18,7 @@ public class TwinsChannel {
 
 	SocketChannel localSc;
 	SocketChannel remoteSc;
+	boolean isPureConnection = false;
 	
 	public TwinsChannel(SocketChannel localSc, Selector selector) {
 		this.localSc = localSc;
@@ -37,10 +41,13 @@ public class TwinsChannel {
 		//System.out.println(localSc.getRemoteAddress().toString());
 		Matcher matcher = patternURL.matcher(localSc.getRemoteAddress().toString());
 		matcher.find();
-		System.out.println(matcher.group(2));
-		NATSession session = NATSessionManager.getSession(Integer.parseInt(matcher.group(2)));
+		Integer localPort = Integer.parseInt(matcher.group(2));
+		NATSession session = NATSessionManager.getSession("tcp", localPort);
 		//建立远程连接
-		remoteSc.connect(new InetSocketAddress(CommonMethods.ipIntToString(session.RemoteIP), (int)session.RemotePort));
+		System.out.println(session.RemoteHost);
+		System.out.println(session.RemotePort);
+		remoteSc.connect(new InetSocketAddress(session.RemoteHost, (int)session.RemotePort));
+		remoteSc.register(selector, SelectionKey.OP_CONNECT, this);
 		remoteSc.register(selector, SelectionKey.OP_READ, this);
 		return remoteSc;
 	}

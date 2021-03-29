@@ -1,11 +1,11 @@
-package nicelee.tcp;
+package nicelee.nat;
 
 public class NATSession {
 	public int RemoteIP;
     public short RemotePort;
     public String RemoteHost;
-    public int BytesSent;
-    public int PacketSent;
+//    public int BytesSent;
+//    public int PacketSent;
     public long LastNanoTime;
     
     @Override

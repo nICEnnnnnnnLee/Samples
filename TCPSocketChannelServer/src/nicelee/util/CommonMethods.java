@@ -1,4 +1,4 @@
-package nicelee.tcp;
+package nicelee.util;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
