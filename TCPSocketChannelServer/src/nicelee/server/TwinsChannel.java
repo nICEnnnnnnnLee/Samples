@@ -5,15 +5,12 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import nicelee.nat.NATSession;
 import nicelee.nat.NATSessionManager;
 
 public class TwinsChannel {
 	
-	final static Pattern patternURL = Pattern.compile("^/([^:]+):(.*)$");
 	Selector selector;
 
 	SocketChannel localSc;
@@ -39,15 +36,12 @@ public class TwinsChannel {
 		//获取连接TCPServer的本地端口号
 		//System.out.println(localSc.getLocalAddress().toString());
 		//System.out.println(localSc.getRemoteAddress().toString());
-		Matcher matcher = patternURL.matcher(localSc.getRemoteAddress().toString());
-		matcher.find();
-		Integer localPort = Integer.parseInt(matcher.group(2));
+		InetSocketAddress address = (InetSocketAddress) localSc.getRemoteAddress();
+		Integer localPort = address.getPort();
 		NATSession session = NATSessionManager.getSession("tcp", localPort);
 		//建立远程连接
-		System.out.println(session.RemoteHost);
-		System.out.println(session.RemotePort);
+		System.out.printf("正在连接 %s:%s\n", session.RemoteHost, session.RemotePort);
 		remoteSc.connect(new InetSocketAddress(session.RemoteHost, (int)session.RemotePort));
-		remoteSc.register(selector, SelectionKey.OP_CONNECT, this);
 		remoteSc.register(selector, SelectionKey.OP_READ, this);
 		return remoteSc;
 	}

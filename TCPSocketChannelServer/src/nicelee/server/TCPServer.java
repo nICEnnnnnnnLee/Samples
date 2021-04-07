@@ -2,14 +2,11 @@ package nicelee.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import nicelee.nat.NATSessionManager;
 import nicelee.util.CommonMethods;
@@ -49,7 +46,7 @@ public class TCPServer extends Handler implements Runnable {
 			/* 得到已经被捕获了的SelectionKey的集合 */
 			Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
 			while (iterator.hasNext()) {
-				System.out.println("有事件来了啊");
+//				System.out.println("有事件来了啊");
 				SelectionKey key = null;
 				SocketChannel sc = null;
 				try {
@@ -60,12 +57,12 @@ public class TCPServer extends Handler implements Runnable {
 						sc = ssc.accept();
 						System.out.println("客户端机子的地址是 " + sc.socket().getRemoteSocketAddress() + "  本地机子的端口号是 "
 								+ sc.socket().getLocalPort());
-						
-						Matcher matcher = patternURL.matcher(sc.getRemoteAddress().toString());
-						matcher.find();
-						Integer portKey = Integer.parseInt(matcher.group(2));
-						NATSessionManager.createSession("tcp", portKey, CommonMethods.ipStringToInt("127.0.0.1"), (short) 7778);
-						
+						InetSocketAddress address = (InetSocketAddress) sc.getRemoteAddress();
+						Integer portKey = address.getPort();
+						// 这一步不应该在这里实现，仅作为测试用例，将收到的连接转给127.0.0.1:7778
+						NATSessionManager.createSession("tcp", portKey, CommonMethods.ipStringToInt("127.0.0.1"),
+								(short) 7778);
+
 						sc.configureBlocking(false);
 
 						TwinsChannel twins = new TwinsChannel(sc, selector);
@@ -77,9 +74,7 @@ public class TCPServer extends Handler implements Runnable {
 				} catch (NullPointerException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
-					e.printStackTrace();
-				} finally {
-					ResourcesUtil.closeQuietly(sc);
+//					e.printStackTrace();
 					ResourcesUtil.closeQuietly(sc);
 					if (key != null) {
 						key.cancel();

@@ -4,36 +4,33 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
-import java.util.regex.Pattern;
 
 public class Handler {
 
-	Pattern patternURL = Pattern.compile("^/([^:]+):(.*)$");
-
-	
-	public void handle(SelectionKey key) throws IOException{
-		System.out.println("事件");
-		if(key == null)
+	public void handle(SelectionKey key) throws IOException {
+//		System.out.println("事件");
+//		System.out.println("key.isReadable():" + key.isReadable());
+//		System.out.println("key.isWritable():" + key.isWritable());
+		if (key == null)
 			return;
 		SocketChannel sc = (SocketChannel) key.channel();
 		TwinsChannel twins = (TwinsChannel) key.attachment();
-		if(key.readyOps() == SelectionKey.OP_READ) {
-			System.out.println("可读事件");
+		if (key.isReadable()) {
+//			System.out.println("可读事件");
 			// 只有在与远端建立时，才有用
-			if(twins.isPureConnection) {
-				if(sc == twins.localSc) {
+			if (twins.remoteSc.isConnected()) {
+				if (sc == twins.localSc) {
+//					System.out.println("来自local的可读事件");
 					pip(twins.localSc, twins.remoteSc);
-				}else {
+				} else {
+//					System.out.println("来自remote的可读事件");
 					pip(twins.remoteSc, twins.localSc);
 				}
+			} else {
+				twins.remoteSc.finishConnect();
 			}
-		}else if(key.readyOps() == SelectionKey.OP_CONNECT) {
-			System.out.println("连接建立事件");
-			sc.finishConnect();
-			sc.configureBlocking(false);
 		}
 	}
-
 
 	/**
 	 * @param source
@@ -50,5 +47,5 @@ public class Handler {
 			bytesRead = source.read(buf);
 		}
 	}
-	
+
 }
